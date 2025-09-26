@@ -1,0 +1,20 @@
+# Development Dockerfile with hot reload
+FROM node:lts
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3212
+
+# Start with nodemon for hot reload
+CMD ["npm", "run", "dev"]

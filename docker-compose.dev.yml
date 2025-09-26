@@ -1,0 +1,54 @@
+# Development Docker Compose - Hot reload enabled
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3212:3212"
+    volumes:
+      - ./src:/usr/src/app/src:ro
+      - ./package.json:/usr/src/app/package.json:ro
+      - ./package-lock.json:/usr/src/app/package-lock.json:ro
+      - ./tsconfig.json:/usr/src/app/tsconfig.json:ro
+      - ./nodemon.json:/usr/src/app/nodemon.json:ro
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT}
+      - APP_NAME=${APP_NAME}
+      - APP_URL=${APP_URL}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_LOGO=${MAIL_LOGO}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - DEFAULT_MAIL_PROVIDER=${DEFAULT_MAIL_PROVIDER}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_OAUTH_REDIRECT_URI=${GOOGLE_OAUTH_REDIRECT_URI}
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=deska
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+
+volumes:
+  mongo_data:

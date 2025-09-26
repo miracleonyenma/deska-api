@@ -33,6 +33,7 @@ export interface User {
   phone?: string;
   phoneVerified?: boolean;
   roles?: Types.ObjectId[];
+  defaultApp?: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }

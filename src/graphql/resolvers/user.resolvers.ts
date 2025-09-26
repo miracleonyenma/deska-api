@@ -98,7 +98,9 @@ const userResolvers = {
           userId: context?.user?.data?.id,
         });
 
-        return await userService.updateUser(args.input);
+        return await userService.updateUser({
+          updateData: args.input,
+        });
       } catch (error) {
         console.log("Mutation.updateUser error", error);
         throw ErrorHandler.handleError(error);

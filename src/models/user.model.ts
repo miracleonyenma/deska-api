@@ -1,6 +1,6 @@
 // ./src/models/user.model.ts
 
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 import { genSalt, hash, compare } from "bcrypt";
 import { array, object, string } from "yup";
 import Role from "./role.model.js";
@@ -13,6 +13,7 @@ import {
   UserModel,
 } from "../types/user.js";
 import { UserService } from "../services/user.services.js";
+import AppService from "../services/app.services.js";
 
 const registerUserSchema = object({
   firstName: string().trim().min(2).required(),
@@ -36,6 +37,7 @@ const editUserSchema = object({
 });
 
 const userService = new UserService({});
+const appService = new AppService();
 
 const userSchema = new mongoose.Schema<UserDocument, UserModel>(
   {
@@ -77,6 +79,11 @@ const userSchema = new mongoose.Schema<UserDocument, UserModel>(
         default: [],
       },
     ],
+    defaultApp: {
+      type: Schema.Types.ObjectId,
+      ref: "App",
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -239,6 +246,26 @@ userSchema.statics.upsertGoogleUser = async function ({
 };
 
 userSchema.statics.upsertGithubUser = userSchema.statics.upsertGoogleUser;
+
+// Hook for save operations
+userSchema.post("save", async function (doc, next) {
+  // Only run if emailVerified was just set to true
+  if (this.isModified("emailVerified") && this.emailVerified) {
+    await appService?.handleUserAppCreation(this);
+  }
+  next();
+});
+
+// Hook for update operations
+userSchema.post(["findOneAndUpdate", "updateOne"], async function (doc) {
+  if (doc && doc.emailVerified) {
+    // Check if this document didn't have an app before (implies email was just verified)
+    const existingApps = await appService?.getApps({ owner: doc.id });
+    if (!existingApps?.[0]) {
+      await appService?.handleUserAppCreation(doc);
+    }
+  }
+});
 
 const User = model<UserDocument, UserModel>("User", userSchema);
 

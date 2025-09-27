@@ -1,6 +1,10 @@
-import { Schema, model, Document, Types } from "mongoose";
+// ./src/models/apiKey.model.ts
 
-const apiKeySchema = new Schema({
+import { Model } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
+import { ApiKeyDocument, ApiKeyModel } from "../types/apiKey.js";
+
+const apiKeySchema = new Schema<ApiKeyDocument, ApiKeyModel>({
   key: {
     type: String,
     required: true,
@@ -15,6 +19,17 @@ const apiKeySchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  app: {
+    type: Schema.Types.ObjectId,
+    ref: "App",
+  },
+  permissions: [
+    {
+      type: String,
+      enum: ["read", "write", "chat"],
+      default: ["chat"],
+    },
+  ],
 });
 
-export default model("ApiKey", apiKeySchema);
+export default model<ApiKeyDocument, ApiKeyModel>("ApiKey", apiKeySchema);
